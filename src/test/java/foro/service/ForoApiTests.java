@@ -116,4 +116,16 @@ class ForoApiTests {
                 .contentType("application/json").content(datosTema(999999L))).andExpect(status().isServiceUnavailable());
         mvc.perform(get("/categorias")).andExpect(status().isOk());
     }
+
+    @Test void publicarNoSobrescribeTemaNiPermiteSuplantarAutor() throws Exception {
+        Long categoriaId = categoria();
+        String original = crearTema(categoriaId);
+        Long id = temas.findAll().getFirst().getId();
+        String datos = datosTema(categoriaId).replace("{", "{\"id\":" + id + ",\"autorId\":1,");
+        mvc.perform(post("/temas").with(httpBasic("otro@foro.cl","ClaveDemo2026!"))
+                .contentType("application/json").content(datos))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.autorId").value(3));
+        mvc.perform(get(original)).andExpect(status().isOk()).andExpect(jsonPath("$.autorId").value(2));
+        org.assertj.core.api.Assertions.assertThat(temas.count()).isEqualTo(2);
+    }
 }

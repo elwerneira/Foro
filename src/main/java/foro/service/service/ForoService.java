@@ -67,11 +67,12 @@ public class ForoService {
     public TemaVista tema(Long id) { return vista(buscarTema(id)); }
 
     public TemaVista crearTema(DatosTema datos, Perfil autor) {
-        var tema = new Tema();
-        tema.setTitulo(datos.titulo().trim());
-        tema.setContenido(datos.contenido().trim());
-        tema.setCategoria(categoria(datos.categoriaId()));
-        tema.setAutorId(autor.id());
+        var tema = Tema.builder()
+                .titulo(datos.titulo().trim())
+                .contenido(datos.contenido().trim())
+                .categoria(categoria(datos.categoriaId()))
+                .autorId(autor.id())
+                .build();
         return vista(temas.saveAndFlush(tema));
     }
 

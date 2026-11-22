@@ -1,0 +1,108 @@
+name: Sumativa semana 5
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: semana5-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  AWS_REGION: us-east-1
+  COMPONENT: foro
+  ECR_REPOSITORY: fullstack3-foro
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar scripts de despliegue
+        run: |
+          bash -n deploy/aplicar-contenedor.sh
+          python3 -c "import ast; from pathlib import Path; ast.parse(Path('deploy/enviar-ssm.py').read_text())"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Actualizar y comprobar la plantilla pública
+        run: |
+          python3 scripts/actualizar-arquetipo.py
+          git diff --exit-code -- arquetipo/src/main/resources/archetype-resources
+      - name: Instalar arquetipo y generar un proyecto nuevo
+        run: |
+          bash mvnw -B -ntp -f arquetipo/pom.xml install
+          bash mvnw -B -ntp org.apache.maven.plugins:maven-archetype-plugin:3.4.1:generate \
+            -DarchetypeGroupId=cl.duoc.fullstack -DarchetypeArtifactId=foro-arquetipo \
+            -DarchetypeVersion=1.0.0 -DgroupId=cl.duoc.entrega -DartifactId=foro-generado \
+            -Dversion=1.0.0 -Dpackage=cl.duoc.entrega.foro -DinteractiveMode=false \
+            -DoutputDirectory="$RUNNER_TEMP/proyectos"
+      - name: Probar el proyecto generado con H2
+        run: bash mvnw -B -ntp -f "$RUNNER_TEMP/proyectos/foro-generado/pom.xml" test
+      - name: Guardar las fuentes generadas para construir la imagen
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuentes-generadas
+          path: |
+            ${{ runner.temp }}/proyectos/foro-generado/
+            !${{ runner.temp }}/proyectos/foro-generado/target/
+          include-hidden-files: true
+          retention-days: 7
+  publicar:
+    needs: verificar
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: fuentes-generadas
+          path: generado
+      - name: Credenciales del laboratorio
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Comprobar imagen inmutable
+        id: existente
+        shell: bash
+        run: |
+          if result=$(aws ecr describe-images --repository-name "$ECR_REPOSITORY" --image-ids imageTag="$GITHUB_SHA" 2>&1); then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          elif [[ "$result" == *ImageNotFoundException* ]]; then
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          else
+            echo "$result" >&2
+            exit 1
+          fi
+      - uses: docker/setup-buildx-action@v3
+        if: steps.existente.outputs.exists != 'true'
+      - name: Construir y publicar imagen
+        if: steps.existente.outputs.exists != 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: generado
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Desplegar en EC2 con SSM
+        if: vars.AWS_DEPLOY_ENABLED == 'true'
+        env:
+          AWS_PRIVATE_BUCKET: ${{ vars.AWS_PRIVATE_BUCKET }}
+          EC2_INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
+          ORACLE_CREDENTIALS_SECRET_ARN: ${{ vars.ORACLE_CREDENTIALS_SECRET_ARN }}
+          IMAGE_URI: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+        run: |
+          aws s3 cp deploy/aplicar-contenedor.sh "s3://$AWS_PRIVATE_BUCKET/deploy/$COMPONENT/$GITHUB_SHA.sh" --sse AES256 --only-show-errors
+          python3 deploy/enviar-ssm.py

@@ -1,6 +1,6 @@
 # Microservicio de Foro
 
-Proyecto de la Semana 2 de Desarrollo Full Stack III. Es parte de un sistema de foros en línea y permite trabajar con categorías, temas y comentarios.
+Proyecto de la Semana 5 de Desarrollo Full Stack III, continuando el trabajo de Semana 2. Es parte de un sistema de foros en línea y permite trabajar con categorías, temas y comentarios.
 
 El objetivo es practicar las operaciones de una API, guardar los datos en Oracle y probar sus respuestas desde Postman. Este servicio utiliza el puerto **8082** y se comunica con Usuarios, que funciona en el **8081**, para validar las cuentas.
 
@@ -53,7 +53,7 @@ Los autores corresponden a cuentas de Usuarios. No hay una clave foránea entre 
 Primero iniciar Usuarios en su propia terminal. Después abrir otra terminal PowerShell para Foro:
 
 ```powershell
-cd "C:\Users\Elwer\Documents\Duoc\FullStack lll\Semana 2\foro\service"
+cd "C:\Users\Elwer\Documents\Duoc\FullStack lll\Semana 5\foro"
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -95,3 +95,14 @@ Agregar estas rutas a `http://localhost:8082` y reemplazar `{id}` por el ID del 
 | GET / PUT / DELETE | `/comentarios/{id}` | Consultar / modificar / eliminar comentario |
 
 Las rutas usan **`/temas` en plural**. El ID de un tema y el de su categoría son distintos datos; no asumir que tienen el mismo número.
+
+
+## Semana 5: patrón, arquetipo y AWS
+
+Aplicamos Builder al crear temas. El servicio construye una entidad nueva con los campos permitidos; el ID lo genera la base. Los cambios de un registro existente siguen usando PUT y verifican sus permisos.
+
+El arquetipo Maven está en `arquetipo`. La [guía de generación](arquetipo/README.md) permite instalar la plantilla y crear un proyecto con otro nombre y paquete. Se generó y probó un proyecto independiente: 6 pruebas H2 aprobadas. La plantilla contiene SQL, pruebas y Dockerfile; excluye wallets y accesos privados.
+
+Dirección AWS: http://3.86.216.48/api/foro/. La IP puede cambiar al reiniciar el laboratorio y el acceso HTTP está restringido a la IP autorizada. Usuarios debe estar iniciado para las operaciones protegidas de Foro.
+
+El workflow `.github/workflows/semana5.yml` está preparado para generar el proyecto desde el arquetipo, probarlo y construir su imagen Docker desde esas fuentes. Todavía debe publicarse y ejecutarse en GitHub para demostrar el flujo completo. Los commits requieren autorización; mensaje acordado: `Sumativa semana 5`.

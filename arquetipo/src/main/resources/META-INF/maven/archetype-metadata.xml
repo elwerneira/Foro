@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor xmlns="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.2.0" name="foro-arquetipo">
+  <fileSets>
+    <fileSet filtered="true" packaged="true"><directory>src/main/java</directory><includes><include>**/*.java</include></includes></fileSet>
+    <fileSet filtered="true" packaged="true"><directory>src/test/java</directory><includes><include>**/*.java</include></includes></fileSet>
+    <fileSet filtered="false"><directory>src/main/resources</directory></fileSet>
+    <fileSet filtered="false"><directory>src/test/resources</directory></fileSet>
+    <fileSet filtered="false"><directory>sql</directory></fileSet>
+    <fileSet filtered="false"><directory>config</directory></fileSet>
+    <fileSet filtered="false"><directory>.mvn</directory></fileSet>
+    <fileSet filtered="true"><directory></directory><includes><include>pom.xml</include><include>Dockerfile</include></includes></fileSet>
+    <fileSet filtered="false"><directory></directory><includes><include>mvnw</include><include>mvnw.cmd</include><include>.gitignore</include><include>.gitattributes</include><include>.dockerignore</include></includes></fileSet>
+  </fileSets>
+</archetype-descriptor>

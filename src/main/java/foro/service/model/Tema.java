@@ -1,6 +1,7 @@
 package foro.service.model;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Builder;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
@@ -18,4 +19,12 @@ public class Tema {
     @ManyToOne(fetch=FetchType.LAZY, optional=false)
     @JoinColumn(name="categoria_id", nullable=false)
     private Categoria categoria;
+
+    @Builder
+    private Tema(String titulo, String contenido, Categoria categoria, Long autorId) {
+        this.titulo = titulo;
+        this.contenido = contenido;
+        this.categoria = categoria;
+        this.autorId = autorId;
+    }
 }

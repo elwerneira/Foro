@@ -1,0 +1,852 @@
+{
+  "info": {
+    "name": "Semana 5 - Foro",
+    "description": "Pruebas de demostración independientes. Importar, revisar baseUrl y ejecutar en orden. Crea datos temporales y los elimina al final; no ejecutada automáticamente contra Oracle.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://3.86.216.48/api/foro"
+    },
+    {
+      "key": "categoriaId",
+      "value": ""
+    },
+    {
+      "key": "temaId",
+      "value": ""
+    },
+    {
+      "key": "comentarioId",
+      "value": ""
+    },
+    {
+      "key": "marca",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Consultar categorías",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [],
+        "url": "{{baseUrl}}/categorias",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Crear categoría temporal",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "AdminDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/categorias",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Prueba video S5 {{marca}}\",\n  \"descripcion\": \"Categoría temporal de demostración\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "for (const k of [\"categoriaId\", \"temaId\", \"comentarioId\"]) pm.collectionVariables.unset(k);",
+              "pm.collectionVariables.set(\"marca\", String(Date.now()));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) {",
+              "  const id = pm.response.json().id;",
+              "  pm.test(\"ID generado válido\", () => pm.expect(id).to.be.a(\"number\").and.above(0));",
+              "  if (Number.isInteger(id) && id > 0) pm.collectionVariables.set(\"categoriaId\", String(id));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Modificar categoría temporal",
+      "request": {
+        "method": "PUT",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "AdminDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/categorias/{{categoriaId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Prueba video S5 {{marca}}\",\n  \"descripcion\": \"Descripción actualizada\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"categoriaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: categoriaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Publicar tema como Ana",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "ana@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "AnaDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/temas",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Prueba video S5 {{marca}}\",\n  \"contenido\": \"Contenido temporal para demostrar la API\",\n  \"categoriaId\": {{categoriaId}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"categoriaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: categoriaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) {",
+              "  const id = pm.response.json().id;",
+              "  pm.test(\"ID generado válido\", () => pm.expect(id).to.be.a(\"number\").and.above(0));",
+              "  if (Number.isInteger(id) && id > 0) pm.collectionVariables.set(\"temaId\", String(id));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Buscar el tema",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [],
+        "url": "{{baseUrl}}/temas?q={{marca}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Consultar el tema",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [],
+        "url": "{{baseUrl}}/temas/{{temaId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"temaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: temaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Editar tema propio",
+      "request": {
+        "method": "PUT",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "ana@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "AnaDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/temas/{{temaId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Prueba video S5 {{marca}}\",\n  \"contenido\": \"Contenido actualizado para el video\",\n  \"categoriaId\": {{categoriaId}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"temaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: temaId\"); pm.execution.skipRequest();",
+              "}",
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"categoriaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: categoriaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Comentar como Luis",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "luis@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "LuisDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/temas/{{temaId}}/comentarios",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"contenido\": \"Comentario temporal del video\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"temaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: temaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) {",
+              "  const id = pm.response.json().id;",
+              "  pm.test(\"ID generado válido\", () => pm.expect(id).to.be.a(\"number\").and.above(0));",
+              "  if (Number.isInteger(id) && id > 0) pm.collectionVariables.set(\"comentarioId\", String(id));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Listar comentarios",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [],
+        "url": "{{baseUrl}}/temas/{{temaId}}/comentarios",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"temaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: temaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Editar comentario propio",
+      "request": {
+        "method": "PUT",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "luis@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "LuisDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/comentarios/{{comentarioId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"contenido\": \"Comentario actualizado\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"comentarioId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: comentarioId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Impedir edición de tema ajeno",
+      "request": {
+        "method": "PUT",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "luis@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "LuisDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/temas/{{temaId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Prueba video S5 {{marca}}\",\n  \"contenido\": \"Contenido temporal para demostrar la API\",\n  \"categoriaId\": {{categoriaId}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"temaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: temaId\"); pm.execution.skipRequest();",
+              "}",
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"categoriaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: categoriaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Impedir borrar tema con comentarios",
+      "request": {
+        "method": "DELETE",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "ana@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "AnaDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [],
+        "url": "{{baseUrl}}/temas/{{temaId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"temaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: temaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 Eliminar comentario temporal como ADMIN",
+      "request": {
+        "method": "DELETE",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "AdminDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [],
+        "url": "{{baseUrl}}/comentarios/{{comentarioId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"comentarioId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: comentarioId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Eliminar tema temporal como ADMIN",
+      "request": {
+        "method": "DELETE",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "AdminDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [],
+        "url": "{{baseUrl}}/temas/{{temaId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"temaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: temaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 Eliminar categoría temporal",
+      "request": {
+        "method": "DELETE",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "AdminDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [],
+        "url": "{{baseUrl}}/categorias/{{categoriaId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"categoriaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: categoriaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 Verificar eliminación del tema",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [],
+        "url": "{{baseUrl}}/temas/{{temaId}}",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección."
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!/^\\d+$/.test(pm.collectionVariables.get(\"temaId\") || \"\")) {",
+              "  console.warn(\"Primero crear el recurso: temaId\"); pm.execution.skipRequest();",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 Validar cuerpo vacío",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin@foro.cl",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "AdminDemo2026!",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/categorias",
+        "description": "Ejecutar en orden. Solo modificar los registros temporales creados por esta colección.",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

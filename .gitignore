@@ -41,3 +41,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Guiones personales de grabación: no publicar
+guiones/
+[Gg]uion*
+[Gg]uión*
